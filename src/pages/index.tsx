@@ -385,7 +385,7 @@ export default function Home() {
 
           header={
             <Header height={60} p="xs">
-              <Title>Ontoligizer</Title>
+              <Title>Ontologizer</Title>
             </Header>
           }
         >
