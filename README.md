@@ -25,19 +25,19 @@ echo "OPENAI_API_KEY=sk-xxx" > supabase/.env
 5. Start the supabase project
 
 ```bash
-supabase start
+npm run supabase:start
 ```
 
 6. Start the supabase functions locally
 
 ```bash
-yarn supabase:dev
+npm run supabase:dev
 ```
 
 7. Start the frontend locally
 
 ```bash
-yarn dev
+npm run dev 
 ```
 
 8. Open [http://localhost:3100](http://localhost:3100) with your browser to see the result.
@@ -65,10 +65,10 @@ supabase link --project-ref <project-ref>
 Then, deploy the functions:
 
 ```bash
-yarn supabase:deploy
+npm run supabase:deploy
 ```
 
-Optionally, if you're also using the Supabase Vector Store from LangcChain, you'll need to push the schema to the database:
+Optionally, if you're also using the Supabase Vector Store from LangChain, you'll need to push the schema to the database:
 
 ```bash
 supabase db push

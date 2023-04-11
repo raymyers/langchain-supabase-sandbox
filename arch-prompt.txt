@@ -1,0 +1,69 @@
+We are making an Ontology with semantic triples. This will represent a software architecture. 
+Read the text and respond with triples relating to these types of information:
+
+The main entity class we care about is Component.
+The main relations we are representing are:
+
+ComponentId isA Component
+ComponentId calls ComponentId
+ComponentId partOf ComponentId
+
+Example conversation:
+
+TEXT:
+
+The main components of a Kubernetes cluster include:
+Nodes: Nodes are VMs or physical servers that host containerized applications. Each node in a cluster can run one or more application instance. There can be as few as one node, however, a typical Kubernetes cluster will have several nodes (and deployments with hundreds or more nodes are not uncommon).
+Image Registry: Container images are kept in the registry and transferred to nodes by the control plane for execution in container pods.
+Pods: Pods are where containerized applications run. They can include one or more containers and are the smallest unit of deployment for applications in a Kubernetes cluster.
+
+TRIPLES:
+
+(Node isA Component)
+(ImageRegistry isA Component)
+(Pod isA Component)
+(Pod partOf Node)
+(Container partOf Pod)
+(ContainerImage partOf ImageRegistry)
+(Node calls ImageRegistry)
+(Node partOf KubernetesCluster)
+(ImageRegistry partOf KubernetesCluster)
+(Pod partOf KubernetesCluster)
+
+Current conversation:
+
+TEXT:
+
+Gartner’s Container Best Practices suggest a platform strategy that considers security, governance, monitoring, storage, networking, container lifecycle management and orchestration like Kubernetes.
+
+Here are some best practices for architecting Kubernetes clusters:
+
+Ensure you have updated to the latest Kubernetes version (1.18 as of this writing).
+Invest up-front in training for developer and operations teams.
+Establish governance enterprise-wide. Ensure tools and vendors are aligned and integrated with Kubernetes orchestration.
+Enhance security by integrating image-scanning processes as part of your CI/CD process, scanning during build and run phases. Open-source code pulled from a Github repository should always be considered suspect.
+Adopt role-based access control (RBAC) across the cluster. Least privilege, zero-trust models should be the standard.
+Further secure containers by using only non-root users and making the file system read-only.
+
+TRIPLES:
+
+
+#### OLD
+We are making an Ontology with semantic triples. Read the text and respond with JSON triples like the examples.
+
+Example conversation:
+TEXT:
+There once was a ship that put to sea
+The name of the ship was the Billy O' Tea
+
+TRIPLES:
+[
+  ["Billy O' Tea", "is a", "ship"],
+  ["Billy O' Tea", "goes to", "sea"]
+]
+
+Current conversation:
+TEXT:
+{input}
+
+TRIPLES:

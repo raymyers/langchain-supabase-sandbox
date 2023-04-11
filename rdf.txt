@@ -1,0 +1,48 @@
+<rdf:RDF
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+    xmlns:ex="http://example.org/">
+    <rdfs:Class rdf:ID="Component"/>
+    <rdfs:Class rdf:ID="Group"/>
+
+    <rdfs:Property rdf:ID="name">
+        <rdfs:domain rdf:resource="#Component"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </rdfs:Property>
+
+    <rdfs:Property rdf:ID="alias">
+        <rdfs:domain rdf:resource="#Component"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </rdfs:Property>
+
+    <rdfs:Property rdf:ID="calls">
+        <rdfs:domain rdf:resource="#Component"/>
+        <rdfs:range rdf:resource="#Component"/>
+    </rdfs:Property>
+
+    <rdfs:Property rdf:ID="partOf">
+        <rdfs:domain rdf:resource="#Component"/>
+        <rdfs:range rdf:resource="#Component"/>
+    </rdfs:Property>
+
+    <ex:Component rdf:ID="Component1">
+        <ex:name>Component1Name</ex:name>
+        <ex:calls rdf:resource="#Component2"/>
+        <ex:alias>Component1Alias1</ex:alias>
+        <ex:alias>Component1Alias2</ex:alias>
+    </ex:Component>
+
+    <ex:Component rdf:ID="Component2">
+        <ex:name>Component2Name</ex:name>
+        <ex:calls rdf:resource="#Component3"/>
+    </ex:Component>
+
+    <ex:Component rdf:ID="Component3">
+        <ex:name>Component3Name</ex:name>
+        <ex:partOf rdf:resource="#Component2"/>
+    </ex:Component>
+
+    <ex:Group rdf:ID="Group1"/>
+    <ex:Group rdf:ID="Group2"/>
+
+</rdf:RDF>

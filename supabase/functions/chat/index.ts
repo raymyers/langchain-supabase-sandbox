@@ -10,7 +10,47 @@ import {
 import { corsHeaders } from "../_shared/cors.ts";
 
 const prompt = ChatPromptTemplate.fromPromptMessages([
-  HumanMessagePromptTemplate.fromTemplate("{input}"),
+  HumanMessagePromptTemplate.fromTemplate(`
+We are making an Ontology with semantic triples. This will represent a software architecture. 
+Read the text and respond with triples relating to these types of information:
+
+The main entity class we care about is Component.
+The main relations we are representing are:
+
+ComponentId isA Component
+ComponentId calls ComponentId
+ComponentId partOf ComponentId
+
+Example conversation:
+
+TEXT:
+
+The main components of a Kubernetes cluster include:
+Nodes: Nodes are VMs or physical servers that host containerized applications. Each node in a cluster can run one or more application instance. There can be as few as one node, however, a typical Kubernetes cluster will have several nodes (and deployments with hundreds or more nodes are not uncommon).
+Image Registry: Container images are kept in the registry and transferred to nodes by the control plane for execution in container pods.
+Pods: Pods are where containerized applications run. They can include one or more containers and are the smallest unit of deployment for applications in a Kubernetes cluster.
+
+TRIPLES:
+
+(Node isA Component)
+(ImageRegistry isA Component)
+(Pod isA Component)
+(Pod partOf Node)
+(Container partOf Pod)
+(ContainerImage partOf ImageRegistry)
+(Node calls ImageRegistry)
+(Node partOf KubernetesCluster)
+(ImageRegistry partOf KubernetesCluster)
+(Pod partOf KubernetesCluster)
+
+Current conversation:
+
+TEXT:
+
+{input}
+
+TRIPLES:
+  `),
 ]);
 
 serve(async (req) => {
@@ -23,7 +63,7 @@ serve(async (req) => {
     const { input } = await req.json();
     // Check if the request is for a streaming response.
     const streaming = req.headers.get("accept") === "text/event-stream";
-
+    const modelName = "gpt-3.5-turbo";
     if (streaming) {
       // For a streaming response we need to use a TransformStream to
       // convert the LLM's callback-based API into a stream-based API.
@@ -32,6 +72,7 @@ serve(async (req) => {
       const writer = stream.writable.getWriter();
 
       const llm = new ChatOpenAI({
+        modelName,
         streaming,
         callbackManager: CallbackManager.fromHandlers({
           handleLLMNewToken: async (token) => {
@@ -59,7 +100,7 @@ serve(async (req) => {
     } else {
       // For a non-streaming response we can just await the result of the
       // chain.run() call and return it.
-      const llm = new ChatOpenAI();
+      const llm = new ChatOpenAI({modelName});
       const chain = new LLMChain({ prompt, llm });
       const response = await chain.call({ input });
 

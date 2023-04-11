@@ -1,6 +1,7 @@
 import "@/styles/globals.css";
 import { useState } from "react";
 import type { AppProps } from "next/app";
+import { MantineProvider } from '@mantine/core';
 import { createBrowserSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { SessionContextProvider } from "@supabase/auth-helpers-react";
 
@@ -16,7 +17,15 @@ export default function AppWrapper(props: AppProps) {
       supabaseClient={supabaseClient}
       initialSession={props.pageProps.initialSession}
     >
-      <App {...props} />
+      <MantineProvider 
+        withGlobalStyles
+        withNormalizeCSS
+        theme={{
+          /** Put your mantine theme override here */
+          colorScheme: 'light',
+        }}>
+        <App {...props} />
+      </MantineProvider>
     </SessionContextProvider>
   );
 }
