@@ -1,3 +1,31 @@
+import { SupabaseClient } from '@supabase/supabase-js'
+
+
+
+// class KnowledgeGraphRoom {
+
+//     constructor() {
+
+//         // this.entityTypes = ydoc.getArray('entityTypes') 
+//       }
+// }
+
+// const init = (supabase: SupabaseClient, channelId: string) => {
+//     const ydoc = new Y.Doc()
+//     const provider = new SupabaseProvider(ydoc, supabase, {
+//         channel: channelId,
+//         id: channelId,
+//         tableName: "room",
+//         columnName: "graph",
+//     })
+//     return new KnowledgeGraphRoom(ydoc)
+// }
+
+// Method 1: Define a top-level type
+
+// Method 2: Define Y.Array that can be included into the Yjs document
+
+
 
 export type Triple = [string, string, string];
 export interface MiniOntology {

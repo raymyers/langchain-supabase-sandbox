@@ -1,6 +1,6 @@
 import Head from "next/head";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { Session, useSupabaseClient } from "@supabase/auth-helpers-react";
 import {
   FormEvent,
   FormEventHandler,
@@ -10,6 +10,7 @@ import {
 } from "react";
 import {
   AppShell,
+  Avatar,
   Badge,
   Button,
   Code,
@@ -18,7 +19,7 @@ import {
   Flex,
   Group,
   Header,
-  Paper,
+  Popover,
   SimpleGrid,
   Stack,
   Text,
@@ -47,51 +48,57 @@ import ReactFlow, {
 } from "reactflow";
 import parser from "../lib/parser";
 import miniOntology, { MiniOntology, Triple } from "../lib/mini-ontology";
+import { Auth } from '@supabase/auth-ui-react'
+import { ThemeSupa } from "@supabase/auth-ui-shared";
+import { elkLayout } from "../lib/layout";
+import { ElkExtendedEdge, ElkLabel, ElkNode } from "elkjs";
+
 
 const dagreGraph = new dagre.graphlib.Graph();
 dagreGraph.setDefaultEdgeLabel(() => ({}));
 const nodeWidth = 172;
 const nodeHeight = 36;
 
-const getLayoutedElements = (
-  nodes: Node[],
-  edges: Edge[],
-  direction = "TB"
-) => {
-  const isHorizontal = direction === "LR";
-  dagreGraph.setGraph({ rankdir: direction });
+// const getLayoutedElements = (
+//   nodes: Node[],
+//   edges: Edge[],
+//   direction = "TB"
+// ) => {
+//   const isHorizontal = direction === "LR";
+//   dagreGraph.setGraph({ rankdir: direction });
 
-  nodes.forEach((node: Node) => {
-    dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
-  });
+//   nodes.forEach((node: Node) => {
+//     dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
+//   });
 
-  edges.forEach((edge: Edge) => {
-    dagreGraph.setEdge(edge.source, edge.target);
-  });
+//   edges.forEach((edge: Edge) => {
+//     dagreGraph.setEdge(edge.source, edge.target);
+//   });
 
-  dagre.layout(dagreGraph);
+//   dagre.layout(dagreGraph);
 
-  nodes.forEach((node: Node) => {
-    const nodeWithPosition = dagreGraph.node(node.id);
-    node.targetPosition = (isHorizontal ? "left" : "top") as Position;
-    node.sourcePosition = (isHorizontal ? "right" : "bottom") as Position;
+//   nodes.forEach((node: Node) => {
+//     const nodeWithPosition = dagreGraph.node(node.id);
+//     node.targetPosition = (isHorizontal ? "left" : "top") as Position;
+//     node.sourcePosition = (isHorizontal ? "right" : "bottom") as Position;
 
-    // We are shifting the dagre node position (anchor=center center) to the top left
-    // so it matches the React Flow node anchor point (top left).
-    node.position = {
-      x: nodeWithPosition.x - nodeWidth / 2,
-      y: nodeWithPosition.y - nodeHeight / 2,
-    };
+//     // We are shifting the dagre node position (anchor=center center) to the top left
+//     // so it matches the React Flow node anchor point (top left).
+//     node.position = {
+//       x: nodeWithPosition.x - nodeWidth / 2,
+//       y: nodeWithPosition.y - nodeHeight / 2,
+//     };
 
-    return node;
-  });
+//     return node;
+//   });
 
-  return { nodes, edges };
-};
+//   return { nodes, edges };
+// };
 
 interface GraphParams {
   triples: Triple[];
 }
+
 
 const initialNodes = [
   { id: "1", data: { label: "-" }, position: { x: 100, y: 100 } },
@@ -99,7 +106,6 @@ const initialNodes = [
 ];
 
 const initialEdges = [{ id: "e1-2", source: "1", target: "2" }];
-
 const GraphThingy = ({ triples }: GraphParams) : JSX.Element => {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
@@ -112,6 +118,7 @@ const GraphThingy = ({ triples }: GraphParams) : JSX.Element => {
   useEffect(() => {
     console.log("Change to triples");
     const nodeNames = new Set<string>();
+    const nameToNode = new Map<string, ElkNode>();
     for (let triple of triples) {
       nodeNames.add(triple[0]);
       nodeNames.add(triple[2]);
@@ -119,61 +126,78 @@ const GraphThingy = ({ triples }: GraphParams) : JSX.Element => {
     let x = 0;
     const xStep = 100;
     const newNodes = [...nodeNames].map((name) => {
-      const node: Node = {
+      const node: ElkNode = {
         id: name,
-        type: "default",
-        data: {
-          label: name,
-        },
-        draggable: false,
-        selectable: false,
-        position: { x: x, y: 0 },
+        labels: [{text: name}]
       };
+      nameToNode.set(name, node);
       x += xStep;
       return node;
     });
-    const nameToEdge = new Map<string, Edge>();
-    const newEdges: Edge[] = [];
+    const nameToEdge = new Map<string, ElkExtendedEdge>();
+    const newEdges: ElkExtendedEdge[] = [];
     triples.forEach((triple) => {
       const source = triple[0];
       const target = triple[2];
       const relation = triple[1];
       let eName = `${source}->${target}`;
       const eNameReversed = `${target}->${source}`;
-
-      const edge: Edge = {
+      
+      const edge: ElkExtendedEdge = {
         id: eName,
-        source: source,
-        target: target,
-        type: "default",
-        markerEnd: {
-          type: MarkerType.ArrowClosed,
-        },
-        label: relation,
+        sources: [source],
+        targets: [target],
+        labels: [{text: relation}],
       };
       const existingEdge = nameToEdge.get(eName);
-      const existingRevergeEdge = nameToEdge.get(eNameReversed);
+      const existingReverseEdge = nameToEdge.get(eNameReversed);
       if (existingEdge) {
-        existingEdge.label = existingEdge.label + ", " + relation;
-      } else if (existingRevergeEdge) {
-        existingRevergeEdge.markerStart = {
-          type: MarkerType.ArrowClosed,
-        };
-        existingRevergeEdge.label = existingRevergeEdge.label + ", " + relation;
+        if (existingEdge.labels && existingEdge.labels[0].text) {
+          existingEdge.labels[0].text = existingEdge.labels[0].text + ", " + relation;
+        }
+      } else if (existingReverseEdge) {
+        // TODO
+        // existingReverseEdge.markerStart = {
+        //   type: MarkerType.ArrowClosed,
+        // };
+        if (existingReverseEdge.labels && existingReverseEdge.labels[0].text) {
+          existingReverseEdge.labels[0].text = existingReverseEdge.labels[0].text + ", " + relation;
+        }
       } else {
         newEdges.push(edge);
         nameToEdge.set(eName, edge);
       }
     });
     console.log("Updating graph", newNodes, newEdges);
-    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
-      newNodes,
-      newEdges,
-      "LR"
-    );
+    const labelsToText = (labels : ElkLabel[] | undefined) => {
+      return labels ? (labels[0].text || "") : ""
+    }
+    const nodesForFlow = (graph : ElkNode) : Node[] => {
+      return (graph.children || []).map((node: ElkNode) : Node => {
+          
+        const position = { x: node.x || 0, y: node.y || 0}
+        return {
+          id: node.id,
+          data: {label: labelsToText(node.labels)},
+          position,
+        };
+      })
+    };
+    const edgesForFlow = (graph : ElkNode) : Edge[] => {
+      return (graph.edges || []).map( (edge : ElkExtendedEdge) : Edge => {
+        return {
+          id: edge.id,
+          source: edge.sources[0],
+          target: edge.targets[0],
+          label: labelsToText(edge.labels)
+        }
+      });
+    };
+    elkLayout(newNodes, newEdges).then((graph) => {
+      setNodes(nodesForFlow(graph));
+      setEdges(edgesForFlow(graph));
+    });
     
-    setEdges([...layoutedEdges]);
-    setNodes([...layoutedNodes]);
     
   }, [triples]);
   useEffect(() => {
@@ -262,6 +286,8 @@ export default function Home() {
   const [stream, setStream] = useState(true);
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
+  const [session, setSession] = useState<Session | null>(null)
+  
   const [acceptedTriples, setAcceptedTriples] = useState<Triple[]>([]);
   const [transferListData, setTransferListData] = useState<TransferListData>([
     [],
@@ -270,6 +296,19 @@ export default function Home() {
   const [showReviewer, setShowReviewer] = useState(false);
 
   const [inflight, setInflight] = useState(false);
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+    })
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+    })
+    
+    return () => subscription.unsubscribe()
+  }, [])
 
   const onSubmit = useCallback(
     async (e: FormEvent) => {
@@ -366,6 +405,7 @@ export default function Home() {
       console.error("invalidTriples", invalidTriples);
     }
   };
+  const supabaseClient = useSupabaseClient()
   return (
     <>
       <Head>
@@ -384,15 +424,42 @@ export default function Home() {
           // }
 
           header={
-            <Header height={60} p="xs">
-              <Title>Ontologizer</Title>
+            <Header height={60} p="xs" style={{display: 'inline-block'}}>
+              <SimpleGrid cols={2}>
+                <div>
+                  <Title style={{fontFamily: 'Luminari, fantasy'}}>Ontology Storm</Title>
+                </div>
+              
+                <Flex
+                  mih={50}
+                  gap="md"
+                  justify="flex-end"
+                  align="flex-start"
+                  direction="row"
+                  wrap="wrap"
+                >
+                  <Popover width={200} position="bottom" withArrow shadow="md">
+                    <Popover.Target>
+                      <Avatar radius="xl" src={session?.user.user_metadata.avatar_url}/>
+                    </Popover.Target>
+                    <Popover.Dropdown>
+                      { !session && <Auth supabaseClient={supabase} appearance={{ theme: ThemeSupa }} providers={['github']} onlyThirdPartyProviders /> }
+                      { session && <div><Button variant="light" onClick={() => supabaseClient.auth.signOut()}>Sign out</Button></div>}
+                    </Popover.Dropdown>
+                  </Popover>
+                
+                
+                </Flex>
+              
+              </SimpleGrid>
+              
             </Header>
           }
         >
           <Stack>
             <SimpleGrid cols={2}>
               <Stack spacing="xs">
-                <Text>Text</Text>
+                <Text>Input</Text>
                 <FormThingy
                   onSubmit={onSubmit}
                   stream={stream}

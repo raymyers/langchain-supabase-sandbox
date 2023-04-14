@@ -1,0 +1,33 @@
+{
+  "expires_at": 1681284689,
+  "expires_in": 3374,
+  "token_type": "bearer",
+  "access_token": "...",
+  "refresh_token": "...",
+  "provider_token": "...",
+  "provider_refresh_token": null,
+  "user": {
+    "id": "a2105cfd-8d28-4040-8da4-d695755ce9c1",
+    "factors": null,
+    "aud": "authenticated",
+    "email": "someone@someone.com",
+    "phone": "",
+    "app_metadata": { "provider": "github", "providers": ["github"] },
+    "user_metadata": {
+      "avatar_url": "https://avatars.githubusercontent.com/u/3324?v=4",
+      "email": "someone@someone.com",
+      "email_verified": true,
+      "full_name": "Ray Myers",
+      "iss": "https://api.github.com",
+      "name": "Ray Myers",
+      "preferred_username": "raymyers",
+      "provider_id": "3324",
+      "sub": "3324",
+      "user_name": "raymyers"
+    },
+    "role": "authenticated",
+    "aal": "aal1",
+    "amr": [{ "method": "oauth", "timestamp": 1681281089 }],
+    "session_id": "..."
+  }
+}

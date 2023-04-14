@@ -9,6 +9,5 @@ test('home', () => {
   (Node partOf KubernetesCluster)
   (ImageRegistry partOf KubernetesCluster)
   `)
-  const expected: any[] = []
   expect(actual).toEqual([['Node', 'calls', 'ImageRegistry'],['Node', 'partOf', 'KubernetesCluster'], ['ImageRegistry', 'partOf', 'KubernetesCluster']])
 })
